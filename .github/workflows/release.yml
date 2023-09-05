@@ -20,7 +20,7 @@ jobs:
     name: Extract crate metadata
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: deep-soft/checkout@v4
     - name: Extract crate information
       id: crate_metadata
       run: |
@@ -40,10 +40,13 @@ jobs:
     name: Ensure 'cargo fmt' has been run
     runs-on: ubuntu-20.04
     steps:
-    - uses: dtolnay/rust-toolchain@stable
+    - uses: deep-soft/rust-toolchain-actions-rs@v2
+      # uses: dtolnay/rust-toolchain@stable
       with:
+        toolchain: stable
         components: rustfmt
-    - uses: actions/checkout@v3
+
+    - uses: deep-soft/checkout@v4
     - run: cargo fmt -- --check
 
   min_version:
@@ -52,10 +55,11 @@ jobs:
     needs: crate_metadata
     steps:
     - name: Checkout source code
-      uses: actions/checkout@v3
+      uses: deep-soft/checkout@v4
 
     - name: Install rust toolchain (v${{ needs.crate_metadata.outputs.msrv }})
-      uses: dtolnay/rust-toolchain@master
+      uses: deep-soft/rust-toolchain-actions-rs@v2
+      # uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ needs.crate_metadata.outputs.msrv }}
         components: clippy
@@ -87,7 +91,7 @@ jobs:
       BUILD_CMD: cargo
     steps:
     - name: Checkout source code
-      uses: actions/checkout@v3
+      uses: deep-soft/checkout@v4
 
     - name: Install prerequisites
       shell: bash
@@ -106,13 +110,16 @@ jobs:
         echo "PROJECT_HOMEPAGE=$(sed -n 's/^homepage = "\(.*\)"/\1/p' Cargo.toml)" >> $GITHUB_ENV
 
     - name: Install Rust toolchain
-      uses: dtolnay/rust-toolchain@stable
+      # uses: dtolnay/rust-toolchain@stable
+      uses: deep-soft/rust-toolchain-actions-rs@v2
       with:
+        toolchain: stable
         targets: ${{ matrix.job.target }}
 
     - name: Install cross
       if: matrix.job.use-cross
       uses: taiki-e/install-action@v2
+      # ? uses: deep-soft/install-action@v2
       with:
         tool: cross
 
@@ -320,13 +327,13 @@ jobs:
         fakeroot dpkg-deb --build "${DPKG_DIR}" "${DPKG_PATH}"
 
     - name: "Artifact upload: tarball"
-      uses: actions/upload-artifact@master
+      uses: deep-soft/upload-artifact@v3
       with:
         name: ${{ steps.package.outputs.PKG_NAME }}
         path: ${{ steps.package.outputs.PKG_PATH }}
 
     - name: "Artifact upload: Debian package"
-      uses: actions/upload-artifact@master
+      uses: deep-soft/upload-artifact@v3
       if: steps.debian-package.outputs.DPKG_NAME
       with:
         name: ${{ steps.debian-package.outputs.DPKG_NAME }}
@@ -340,7 +347,7 @@ jobs:
         echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_OUTPUT
 
     - name: Publish archives and packages
-      uses: softprops/action-gh-release@v1
+      uses: deep-soft/action-gh-release@v1
       #if: steps.is-release.outputs.IS_RELEASE
       with:
         tag_name: ${{ env.TAG_PREFIX }}${{ env.PROJECT_VERSION }}${{ env.TAG_SUFFIX }}
