@@ -114,12 +114,12 @@ jobs:
       uses: deep-soft/rust-toolchain-actions-rs@v2
       with:
         toolchain: stable
-        targets: ${{ matrix.job.target }}
+        target: ${{ matrix.job.target }}
 
     - name: Install cross
       if: matrix.job.use-cross
-      uses: taiki-e/install-action@v2
-      # ? uses: deep-soft/install-action@v2
+      # uses: taiki-e/install-action@v2
+      uses: deep-soft/install-action@v2
       with:
         tool: cross
 
