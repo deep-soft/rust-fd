@@ -1,3 +1,5 @@
+# 2023-10-20 08:00
+# rust-toolchain@master (dtolnay version)
 name: Release
 
 env:
@@ -40,7 +42,8 @@ jobs:
     name: Ensure 'cargo fmt' has been run
     runs-on: ubuntu-20.04
     steps:
-    - uses: deep-soft/rust-toolchain-actions-rs@v3
+    - uses: deep-soft/rust-toolchain@master
+      # uses: deep-soft/rust-toolchain-actions-rs@v3
       # uses: dtolnay/rust-toolchain@stable
       with:
         toolchain: stable
@@ -58,7 +61,8 @@ jobs:
       uses: deep-soft/checkout@v4
 
     - name: Install rust toolchain (v${{ needs.crate_metadata.outputs.msrv }})
-      uses: deep-soft/rust-toolchain-actions-rs@v3
+      uses: deep-soft/rust-toolchain@master
+      # deep-soft/rust-toolchain-actions-rs@v3
       # uses: dtolnay/rust-toolchain@master
       with:
         toolchain: ${{ needs.crate_metadata.outputs.msrv }}
@@ -110,8 +114,9 @@ jobs:
         echo "PROJECT_HOMEPAGE=$(sed -n 's/^homepage = "\(.*\)"/\1/p' Cargo.toml)" >> $GITHUB_ENV
 
     - name: Install Rust toolchain
+      uses: deep-soft/rust-toolchain@master
+      # uses: deep-soft/rust-toolchain-actions-rs@v3
       # uses: dtolnay/rust-toolchain@stable
-      uses: deep-soft/rust-toolchain-actions-rs@v3
       with:
         toolchain: stable
         target: ${{ matrix.job.target }}
