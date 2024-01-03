@@ -261,7 +261,9 @@ To make exclude-patterns like these permanent, you can create a `.fdignore` file
 /mnt/external-drive
 *.bak
 ```
-Note: `fd` also supports `.ignore` files that are used by other programs such as `rg` or `ag`.
+
+> [!NOTE]
+> `fd` also supports `.ignore` files that are used by other programs such as `rg` or `ag`.
 
 If you want `fd` to ignore these patterns globally, you can put them in `fd`'s global ignore file.
 This is usually located in `~/.config/fd/ignore` in macOS or Linux, and `%APPDATA%\fd\ignore` in
@@ -284,7 +286,8 @@ option:
 If you also want to remove a certain class of directories, you can use the same technique. You will
 have to use `rm`s `--recursive`/`-r` flag to remove directories.
 
-Note: there are scenarios where using `fd … -X rm -r` can cause race conditions: if you have a
+> [!NOTE]
+> There are scenarios where using `fd … -X rm -r` can cause race conditions: if you have a
 path like `…/foo/bar/foo/…` and want to remove all directories named `foo`, you can end up in a
 situation where the outer `foo` directory is removed first, leading to (harmless) *"'foo/bar/foo':
 No such file or directory"* errors in the `rm` call.
@@ -351,7 +354,7 @@ Benchmark 2: find ~ -iname '*[0-9].jpg'
 ```
 
 Now let's try the same for `fd`. Note that `fd` performs a regular expression
-search by defautl. The options `-u`/`--unrestricted` option is needed here for
+search by default. The options `-u`/`--unrestricted` option is needed here for
 a fair comparison. Otherwise `fd` does not have to traverse hidden folders and
 ignored paths (see below):
 ```
