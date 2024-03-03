@@ -1,4 +1,4 @@
-# 2023-12-19 15:00
+# 2024-03-03 20:00
 # rust-toolchain@master (dtolnay version)
 name: Release
 
@@ -334,13 +334,13 @@ jobs:
         fakeroot dpkg-deb --build "${DPKG_DIR}" "${DPKG_PATH}"
 
     - name: "Artifact upload: tarball"
-      uses: deep-soft/upload-artifact@v3
+      uses: deep-soft/upload-artifact@v4
       with:
         name: ${{ steps.package.outputs.PKG_NAME }}
         path: ${{ steps.package.outputs.PKG_PATH }}
 
     - name: "Artifact upload: Debian package"
-      uses: deep-soft/upload-artifact@v3
+      uses: deep-soft/upload-artifact@v4
       if: steps.debian-package.outputs.DPKG_NAME
       with:
         name: ${{ steps.debian-package.outputs.DPKG_NAME }}
@@ -354,7 +354,7 @@ jobs:
         echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_OUTPUT
 
     - name: Publish archives and packages
-      uses: deep-soft/action-gh-release@v1
+      uses: deep-soft/action-gh-release@v2.1
       #if: steps.is-release.outputs.IS_RELEASE
       with:
         tag_name: ${{ env.TAG_PREFIX }}${{ env.PROJECT_VERSION }}${{ env.TAG_SUFFIX }}
