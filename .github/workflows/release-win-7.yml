@@ -110,7 +110,7 @@ jobs:
       # uses: deep-soft/rust-toolchain-actions-rs@v3
       # uses: dtolnay/rust-toolchain@stable
       with:
-        toolchain: ${{ contains(matrix.job.target, "windows-") && "1.77.2" || "stable" }}
+        toolchain: "${{ contains(matrix.job.target, 'windows-') && '1.77.2' || 'stable' }}"
         target: ${{ matrix.job.target }}
 
     - name: Install cross
