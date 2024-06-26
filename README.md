@@ -12,22 +12,6 @@ While it does not aim to support all of `find`'s powerful functionality, it prov
 
 [Installation](#installation) • [How to use](#how-to-use) • [Troubleshooting](#troubleshooting)
 
-## Sponsors
-
-A special *thank you* goes to our biggest <a href="doc/sponsors.md">sponsors</a>:
-
-<a href="https://terminaltrove.com/?utm_campaign=github&utm_medium=referral&utm_content=fd&utm_source=fdgh">
-  <img src="doc/sponsors/terminal_trove_green.svg" width="200" alt="Terminal Trove">
-  <br>
-  <strong>The $HOME of all things in the terminal.</strong>
-</a>
-<br>
-<a href="https://terminaltrove.com/newsletter?utm_campaign=github&utm_medium=referral&utm_content=fd&utm_source=fdgh">
-  <sub>Find your next CLI / TUI tool and more at Terminal Trove,</sub>
-  <br>
-  <sup>Get updates on new tools on our newsletter.</sup>
-</a>
-
 ## Features
 
 * Intuitive syntax: `fd PATTERN` instead of `find -iname '*PATTERN*'`.
@@ -282,6 +266,9 @@ If you want `fd` to ignore these patterns globally, you can put them in `fd`'s g
 This is usually located in `~/.config/fd/ignore` in macOS or Linux, and `%APPDATA%\fd\ignore` in
 Windows.
 
+You may wish to include `.git/` in your `fd/ignore` file so that `.git` directories, and their contents
+are not included in output if you use the `--hidden` option.
+
 ### Deleting files
 
 You can use `fd` to remove all files and directories that are matched by your search pattern.
@@ -330,13 +317,14 @@ Options:
   -d, --max-depth <depth>          Set maximum search depth (default: none)
   -E, --exclude <pattern>          Exclude entries that match the given glob pattern
   -t, --type <filetype>            Filter by type: file (f), directory (d/dir), symlink (l),
-                                   executable (x), empty (e), socket (s), pipe (p),
-                                   block-device (b), char-device (c)
+                                   executable (x), empty (e), socket (s), pipe (p), char-device
+                                   (c), block-device (b)
   -e, --extension <ext>            Filter by file extension
   -S, --size <size>                Limit results based on the size of files
       --changed-within <date|dur>  Filter by file modification time (newer than)
       --changed-before <date|dur>  Filter by file modification time (older than)
   -o, --owner <user:group>         Filter by owning user and/or group
+      --format <fmt>               Print results according to template
   -x, --exec <cmd>...              Execute a command for each search result
   -X, --exec-batch <cmd>...        Execute a command with all search results at once
   -c, --color <when>               When to use colors [default: auto] [possible values: auto,
@@ -533,7 +521,7 @@ newlines). In the same way, the `-0` option of `xargs` tells it to read the inpu
 If you run Ubuntu 19.04 (Disco Dingo) or newer, you can install the
 [officially maintained package](https://packages.ubuntu.com/fd-find):
 ```
-sudo apt install fd-find
+apt install fd-find
 ```
 Note that the binary is called `fdfind` as the binary name `fd` is already used by another package.
 It is recommended that after installation, you add a link to `fd` by executing command
@@ -543,7 +531,7 @@ Make sure that `$HOME/.local/bin` is in your `$PATH`.
 If you use an older version of Ubuntu, you can download the latest `.deb` package from the
 [release page](https://github.com/sharkdp/fd/releases) and install it via:
 ``` bash
-sudo dpkg -i fd_9.0.0_amd64.deb # adapt version number and architecture
+dpkg -i fd_9.0.0_amd64.deb # adapt version number and architecture
 ```
 
 ### On Debian
@@ -551,7 +539,7 @@ sudo dpkg -i fd_9.0.0_amd64.deb # adapt version number and architecture
 If you run Debian Buster or newer, you can install the
 [officially maintained Debian package](https://tracker.debian.org/pkg/rust-fd-find):
 ```
-sudo apt-get install fd-find
+apt-get install fd-find
 ```
 Note that the binary is called `fdfind` as the binary name `fd` is already used by another package.
 It is recommended that after installation, you add a link to `fd` by executing command
@@ -579,6 +567,8 @@ You can install [the fd package](https://www.archlinux.org/packages/community/x8
 ```
 pacman -S fd
 ```
+You can also install fd [from the AUR](https://aur.archlinux.org/packages/fd-git).
+
 ### On Gentoo Linux
 
 You can use [the fd ebuild](https://packages.gentoo.org/packages/sys-apps/fd) from the official repo:
@@ -598,6 +588,20 @@ zypper in fd
 You can install `fd` via xbps-install:
 ```
 xbps-install -S fd
+```
+
+### On ALT Linux
+
+You can install [the fd package](https://packages.altlinux.org/en/sisyphus/srpms/fd/) from the official repo:
+```
+apt-get install fd
+```
+
+### On Solus
+
+You can install [the fd package](https://github.com/getsolus/packages/tree/main/packages/f/fd) from the official repo:
+```
+eopkg install fd
 ```
 
 ### On RedHat Enterprise Linux 8/9 (RHEL8/9), Almalinux 8/9, EuroLinux 8/9 or Rocky Linux 8/9
@@ -620,7 +624,7 @@ brew install fd
 
 … or with MacPorts:
 ```
-sudo port install fd
+port install fd
 ```
 
 ### On Windows
@@ -656,6 +660,13 @@ You can use the [Nix package manager](https://nixos.org/nix/) to install `fd`:
 nix-env -i fd
 ```
 
+### Via Flox
+
+You can use [Flox](https://flox.dev) to install `fd` into a Flox environment:
+```
+flox install fd
+```
+
 ### On FreeBSD
 
 You can install [the fd-find package](https://www.freshports.org/sysutils/fd) from the official repo:
@@ -665,7 +676,7 @@ pkg install fd-find
 
 ### From npm
 
-On linux and macOS, you can install the [fd-find](https://npm.im/fd-find) package:
+On Linux and macOS, you can install the [fd-find](https://npm.im/fd-find) package:
 
 ```
 npm install -g fd-find
@@ -677,7 +688,7 @@ With Rust's package manager [cargo](https://github.com/rust-lang/cargo), you can
 ```
 cargo install fd-find
 ```
-Note that rust version *1.70.0* or later is required.
+Note that rust version *1.77.2* or later is required.
 
 `make` is also needed for the build.
 

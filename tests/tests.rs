@@ -1311,7 +1311,8 @@ fn test_type_executable() {
     let te = TestEnv::new(DEFAULT_DIRS, DEFAULT_FILES);
 
     fs::OpenOptions::new()
-        .create(true)
+        .create_new(true)
+        .truncate(true)
         .write(true)
         .mode(0o777)
         .open(te.test_root().join("executable-file.sh"))
@@ -1319,6 +1320,7 @@ fn test_type_executable() {
 
     fs::OpenOptions::new()
         .create(true)
+        .truncate(true)
         .write(true)
         .mode(0o645)
         .open(te.test_root().join("not-user-executable-file.sh"))
@@ -1619,6 +1621,66 @@ fn test_excludes() {
         one/two/three/
         one/two/three/directory_foo/
         symlink",
+    );
+}
+
+#[test]
+fn format() {
+    let te = TestEnv::new(DEFAULT_DIRS, DEFAULT_FILES);
+
+    te.assert_output(
+        &["--format", "path={}", "--path-separator=/"],
+        "path=a.foo
+        path=e1 e2
+        path=one
+        path=one/b.foo
+        path=one/two
+        path=one/two/C.Foo2
+        path=one/two/c.foo
+        path=one/two/three
+        path=one/two/three/d.foo
+        path=one/two/three/directory_foo
+        path=symlink",
+    );
+
+    te.assert_output(
+        &["foo", "--format", "noExt={.}", "--path-separator=/"],
+        "noExt=a
+        noExt=one/b
+        noExt=one/two/C
+        noExt=one/two/c
+        noExt=one/two/three/d
+        noExt=one/two/three/directory_foo",
+    );
+
+    te.assert_output(
+        &["foo", "--format", "basename={/}", "--path-separator=/"],
+        "basename=a.foo
+        basename=b.foo
+        basename=C.Foo2
+        basename=c.foo
+        basename=d.foo
+        basename=directory_foo",
+    );
+
+    te.assert_output(
+        &["foo", "--format", "name={/.}", "--path-separator=/"],
+        "name=a
+        name=b
+        name=C
+        name=c
+        name=d
+        name=directory_foo",
+    );
+
+    te.assert_output(
+        &["foo", "--format", "parent={//}", "--path-separator=/"],
+        "parent=.
+        parent=one
+        parent=one/two
+        parent=one/two
+        parent=one/two/three
+        parent=one/two/three",
     );
 }
 
@@ -2571,7 +2633,14 @@ fn test_git_dir() {
         ],
     );
 
-    te.assert_output(&["--hidden", "foo"], "");
+    te.assert_output(
+        &["--hidden", "foo"],
+        ".git/one/foo.a
+        .git/.foo
+        .git/a.foo
+        other_dir/.git/foo1
+        nested/dir/.git/foo2",
+    );
     te.assert_output(&["--no-ignore", "foo"], "");
     te.assert_output(
         &["--hidden", "--no-ignore", "foo"],
@@ -2589,4 +2658,17 @@ fn test_git_dir() {
          other_dir/.git/foo1
          nested/dir/.git/foo2",
     );
+}
+
+#[test]
+fn test_gitignore_parent() {
+    let te = TestEnv::new(&["sub"], &[".abc", "sub/.abc"]);
+
+    fs::File::create(te.test_root().join(".gitignore"))
+        .unwrap()
+        .write_all(b".abc\n")
+        .unwrap();
+
+    te.assert_output_subdirectory("sub", &["--hidden"], "");
+    te.assert_output_subdirectory("sub", &["--hidden", "--search-path", "."], "");
 }

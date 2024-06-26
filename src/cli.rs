@@ -49,8 +49,7 @@ pub struct Opts {
     no_hidden: (),
 
     /// Show search results from files and directories that would otherwise be
-    /// ignored by '.gitignore', '.ignore', '.fdignore', the global ignore file,
-    /// or the default rule that excludes .git/.
+    /// ignored by '.gitignore', '.ignore', '.fdignore', or the global ignore file,
     /// The flag can be overridden with --ignore.
     #[arg(
         long,
@@ -64,7 +63,7 @@ pub struct Opts {
     #[arg(long, overrides_with = "no_ignore", hide = true, action = ArgAction::SetTrue)]
     ignore: (),
 
-    ///Show search results from '.git/' folders and files and directories that
+    ///Show search results from files and directories that
     ///would otherwise be ignored by '.gitignore' files.
     ///The flag can be overridden with --ignore-vcs.
     #[arg(
@@ -399,7 +398,7 @@ pub struct Opts {
 
     /// Filter results based on the file modification time. Files with modification times
     /// greater than the argument are returned. The argument can be provided
-    /// as a specific point in time (YYYY-MM-DD HH:MM:SS) or as a duration (10h, 1d, 35min).
+    /// as a specific point in time (YYYY-MM-DD HH:MM:SS or @timestamp) or as a duration (10h, 1d, 35min).
     /// If the time is not specified, it defaults to 00:00:00.
     /// '--change-newer-than', '--newer', or '--changed-after' can be used as aliases.
     ///
@@ -421,7 +420,7 @@ pub struct Opts {
 
     /// Filter results based on the file modification time. Files with modification times
     /// less than the argument are returned. The argument can be provided
-    /// as a specific point in time (YYYY-MM-DD HH:MM:SS) or as a duration (10h, 1d, 35min).
+    /// as a specific point in time (YYYY-MM-DD HH:MM:SS or @timestamp) or as a duration (10h, 1d, 35min).
     /// '--change-older-than' or '--older' can be used as aliases.
     ///
     /// Examples:
@@ -452,6 +451,20 @@ pub struct Opts {
         long_help,
         )]
     pub owner: Option<OwnerFilter>,
+
+    /// Instead of printing the file normally, print the format string with the following placeholders replaced:
+    ///   '{}': path (of the current search result)
+    ///   '{/}': basename
+    ///   '{//}': parent directory
+    ///   '{.}': path without file extension
+    ///   '{/.}': basename without file extension
+    #[arg(
+        long,
+        value_name = "fmt",
+        help = "Print results according to template",
+        conflicts_with = "list_details"
+    )]
+    pub format: Option<String>,
 
     #[command(flatten)]
     pub exec: Exec,
@@ -618,9 +631,10 @@ pub struct Opts {
     /// By default, relative paths are prefixed with './' when -x/--exec,
     /// -X/--exec-batch, or -0/--print0 are given, to reduce the risk of a
     /// path starting with '-' being treated as a command line option. Use
-    /// this flag to disable this behaviour.
-    #[arg(long, conflicts_with_all(&["path", "search_path"]), hide_short_help = true, long_help)]
-    pub strip_cwd_prefix: bool,
+    /// this flag to change this behavior. If this flag is used without a value,
+    /// it is equivalent to passing "always".
+    #[arg(long, conflicts_with_all(&["path", "search_path"]), value_name = "when", hide_short_help = true, require_equals = true, long_help)]
+    strip_cwd_prefix: Option<Option<StripCwdWhen>>,
 
     /// By default, fd will traverse the file system tree as far as other options
     /// dictate. With this flag, fd ensures that it does not descend into a
@@ -643,7 +657,7 @@ impl Opts {
         } else if !self.search_path.is_empty() {
             &self.search_path
         } else {
-            let current_directory = Path::new(".");
+            let current_directory = Path::new("./");
             ensure_current_directory_exists(current_directory)?;
             return Ok(vec![self.normalize_path(current_directory)]);
         };
@@ -666,6 +680,9 @@ impl Opts {
     fn normalize_path(&self, path: &Path) -> PathBuf {
         if self.absolute_path {
             filesystem::absolute_path(path.normalize().unwrap().as_path()).unwrap()
+        } else if path == Path::new(".") {
+            // Change "." to "./" as a workaround for https://github.com/BurntSushi/ripgrep/pull/2711
+            PathBuf::from("./")
         } else {
             path.to_path_buf()
         }
@@ -696,6 +713,16 @@ impl Opts {
         self.max_results
             .filter(|&m| m > 0)
             .or_else(|| self.max_one_result.then_some(1))
+    }
+
+    pub fn strip_cwd_prefix<P: FnOnce() -> bool>(&self, auto_pred: P) -> bool {
+        use self::StripCwdWhen::*;
+        self.no_search_paths()
+            && match self.strip_cwd_prefix.map_or(Auto, |o| o.unwrap_or(Always)) {
+                Auto => auto_pred(),
+                Always => true,
+                Never => false,
+            }
     }
 
     #[cfg(feature = "completions")]
@@ -755,6 +782,16 @@ pub enum ColorWhen {
     /// always use colorized output
     Always,
     /// do not use colorized output
+    Never,
+}
+
+#[derive(Copy, Clone, PartialEq, Eq, Debug, ValueEnum)]
+pub enum StripCwdWhen {
+    /// Use the default behavior
+    Auto,
+    /// Always strip the ./ at the beginning of paths
+    Always,
+    /// Never strip the ./
     Never,
 }
 
