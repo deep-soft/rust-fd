@@ -1,4 +1,4 @@
-# 2024-08-10 07:10
+# 2024-11-13 16:00
 # rust-toolchain 1.77.2, for windows 7
 name: rust-1.77.2 (win 7)
 
@@ -27,50 +27,50 @@ jobs:
       id: crate_metadata
       run: |
         echo "name=fd" | tee -a $GITHUB_OUTPUT
-        cargo metadata --no-deps --format-version 1 | jq -r '"version=" + .packages[0].version' | tee -a $GITHUB_OUTPUT
-        cargo metadata --no-deps --format-version 1 | jq -r '"maintainer=" + .packages[0].authors[0]' | tee -a $GITHUB_OUTPUT
-        cargo metadata --no-deps --format-version 1 | jq -r '"homepage=" + .packages[0].homepage' | tee -a $GITHUB_OUTPUT
-        cargo metadata --no-deps --format-version 1 | jq -r '"msrv=" + .packages[0].rust_version' | tee -a $GITHUB_OUTPUT
+        cargo metadata --no-deps --format-version 1 | jq -r '"version="    + .packages[0].version'      | tee -a $GITHUB_OUTPUT
+        cargo metadata --no-deps --format-version 1 | jq -r '"maintainer=" + .packages[0].authors[0]'   | tee -a $GITHUB_OUTPUT
+        cargo metadata --no-deps --format-version 1 | jq -r '"homepage="   + .packages[0].homepage'     | tee -a $GITHUB_OUTPUT
+        cargo metadata --no-deps --format-version 1 | jq -r '"msrv="       + .packages[0].rust_version' | tee -a $GITHUB_OUTPUT
     outputs:
-      name: ${{ steps.crate_metadata.outputs.name }}
-      version: ${{ steps.crate_metadata.outputs.version }}
+      name:       ${{ steps.crate_metadata.outputs.name }}
+      version:    ${{ steps.crate_metadata.outputs.version }}
       maintainer: ${{ steps.crate_metadata.outputs.maintainer }}
-      homepage: ${{ steps.crate_metadata.outputs.homepage }}
-      msrv: ${{ steps.crate_metadata.outputs.msrv }}
+      homepage:   ${{ steps.crate_metadata.outputs.homepage }}
+      msrv:       ${{ steps.crate_metadata.outputs.msrv }}
 
-  ensure_cargo_fmt:
-    name: Ensure 'cargo fmt' has been run
-    runs-on: ubuntu-20.04
-    steps:
-    - uses: deep-soft/rust-toolchain@master
-      # uses: deep-soft/rust-toolchain-actions-rs@v3
-      # uses: dtolnay/rust-toolchain@stable
-      with:
-        toolchain: stable
-        components: rustfmt
-
-    - uses: deep-soft/checkout@v4
-    - run: cargo fmt -- --check
-
-  min_version:
-    name: Minimum supported rust version
-    runs-on: ubuntu-20.04
-    needs: crate_metadata
-    steps:
-    - name: Checkout source code
-      uses: deep-soft/checkout@v4
-
-    - name: Install rust toolchain (v${{ needs.crate_metadata.outputs.msrv }})
-      uses: deep-soft/rust-toolchain@master
-      # deep-soft/rust-toolchain-actions-rs@v3
-      # uses: dtolnay/rust-toolchain@master
-      with:
-        toolchain: ${{ needs.crate_metadata.outputs.msrv }}
-        components: clippy
-    - name: Run clippy (on minimum supported rust version to prevent warnings we can't fix)
-      run: cargo clippy --locked --all-targets ${{ env.MSRV_FEATURES }}
-    - name: Run tests
-      run: cargo test --locked ${{ env.MSRV_FEATURES }}
+#  ensure_cargo_fmt:
+#    name: Ensure 'cargo fmt' has been run
+#    runs-on: ubuntu-20.04
+#    steps:
+#    - uses: deep-soft/rust-toolchain@master
+#      # uses: deep-soft/rust-toolchain-actions-rs@v3
+#      # uses: dtolnay/rust-toolchain@stable
+#      with:
+#        toolchain: stable
+#        components: rustfmt
+#
+#    - uses: deep-soft/checkout@v4
+#    - run: cargo fmt -- --check
+#
+#  min_version:
+#    name: Minimum supported rust version
+#    runs-on: ubuntu-20.04
+#    needs: crate_metadata
+#    steps:
+#    - name: Checkout source code
+#      uses: deep-soft/checkout@v4
+#
+#    - name: Install rust toolchain (v${{ needs.crate_metadata.outputs.msrv }})
+#      uses: deep-soft/rust-toolchain@master
+#      # deep-soft/rust-toolchain-actions-rs@v3
+#      # uses: dtolnay/rust-toolchain@master
+#      with:
+#        toolchain: ${{ needs.crate_metadata.outputs.msrv }}
+#        components: clippy
+#    - name: Run clippy (on minimum supported rust version to prevent warnings we can't fix)
+#      run: cargo clippy --locked --all-targets ${{ env.MSRV_FEATURES }}
+#    - name: Run tests
+#      run: cargo test --locked ${{ env.MSRV_FEATURES }}
 
   build:
     name: ${{ matrix.job.target }} (${{ matrix.job.os }})
@@ -80,9 +80,9 @@ jobs:
       fail-fast: false
       matrix:
         job:
-          - { target: i686-pc-windows-msvc        , os: windows-2019                  }
-          - { target: x86_64-pc-windows-gnu       , os: windows-2019                  }
           - { target: x86_64-pc-windows-msvc      , os: windows-2019                  }
+#          - { target: i686-pc-windows-msvc        , os: windows-2019                  }
+#          - { target: x86_64-pc-windows-gnu       , os: windows-2019                  }
     env:
       BUILD_CMD: cargo
     steps:
@@ -112,18 +112,6 @@ jobs:
       with:
         toolchain: "${{ contains(matrix.job.target, 'windows-') && '1.77.2' || 'stable' }}"
         target: ${{ matrix.job.target }}
-
-    - name: Install cross
-      if: matrix.job.use-cross
-      # uses: taiki-e/install-action@v2
-      uses: deep-soft/install-action@v2
-      with:
-        tool: cross
-
-    - name: Overwrite build command env variable
-      if: matrix.job.use-cross
-      shell: bash
-      run: echo "BUILD_CMD=cross" >> $GITHUB_ENV
 
     - name: Show version information (Rust, cargo, GCC)
       shell: bash
@@ -211,39 +199,14 @@ jobs:
         # Let subsequent steps know where to find the compressed package
         echo "PKG_PATH=${PKG_STAGING}/${PKG_NAME}" >> $GITHUB_OUTPUT
 
-    - name: Create Debian package
-      id: debian-package
-      shell: bash
-      if: startsWith(matrix.job.os, 'ubuntu')
-      run: bash scripts/create-deb.sh
-      env:
-        TARGET: ${{ matrix.job.target }}
-        DPKG_VERSION: ${{ needs.crate_metadata.version }}
-        BIN_PATH: ${{ steps.bin.outputs.BIN_PATH }}
-
     - name: "Artifact upload: tarball"
       uses: deep-soft/upload-artifact@v4
       with:
         name: ${{ steps.package.outputs.PKG_NAME }}
         path: ${{ steps.package.outputs.PKG_PATH }}
 
-    - name: "Artifact upload: Debian package"
-      uses: deep-soft/upload-artifact@v4
-      if: steps.debian-package.outputs.DPKG_NAME
-      with:
-        name: ${{ steps.debian-package.outputs.DPKG_NAME }}
-        path: ${{ steps.debian-package.outputs.DPKG_PATH }}
-
-    - name: Check for release
-      id: is-release
-      shell: bash
-      run: |
-        unset IS_RELEASE ; if [[ $GITHUB_REF =~ ^refs/tags/v[0-9].* ]]; then IS_RELEASE='true' ; fi
-        echo "IS_RELEASE=${IS_RELEASE}" >> $GITHUB_OUTPUT
-
     - name: Publish archives and packages
       uses: deep-soft/action-gh-release@v2.1
-      #if: steps.is-release.outputs.IS_RELEASE
       with:
         tag_name: ${{ env.TAG_PREFIX }}${{ env.PROJECT_VERSION }}${{ env.TAG_SUFFIX }}
         files: |
