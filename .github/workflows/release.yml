@@ -194,7 +194,9 @@ jobs:
       id: package
       shell: bash
       run: |
-        PKG_suffix=".tar.gz" ; case ${{ matrix.job.target }} in *-pc-windows-*) PKG_suffix=".zip" ;; esac;
+        PKG_suffix=".tar.gz" ;
+        case ${{ matrix.job.target }} in *-pc-windows-*) PKG_suffix=".zip" ;; esac;
+        case ${{ matrix.job.os }} in *macos-*) PKG_suffix="${{ matrix.job.os }}.tar.gz" ;; esac;
         PKG_BASENAME=${{ needs.crate_metadata.outputs.name }}-v${{ needs.crate_metadata.outputs.version }}-${{ matrix.job.target }}
         PKG_NAME=${PKG_BASENAME}${PKG_suffix}
         echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_OUTPUT
