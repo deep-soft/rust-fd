@@ -1,7 +1,6 @@
 # 2025-10-29 08:10
 # rust-toolchain@master (dtolnay version)
 # windows-22, macos-13, ubuntu-22.04
-# release.yml
 name: Release
 
 env:
@@ -195,7 +194,9 @@ jobs:
       id: package
       shell: bash
       run: |
-        PKG_suffix=".tar.gz" ; case ${{ matrix.job.target }} in *-pc-windows-*) PKG_suffix=".zip" ;; esac;
+        PKG_suffix=".tar.gz" ;
+        case ${{ matrix.job.target }} in *-pc-windows-*) PKG_suffix=".zip" ;; esac;
+        case ${{ matrix.job.os }} in *macos-*) PKG_suffix="${{ matrix.job.os }}.tar.gz" ;; esac;
         PKG_BASENAME=${{ needs.crate_metadata.outputs.name }}-v${{ needs.crate_metadata.outputs.version }}-${{ matrix.job.target }}
         PKG_NAME=${PKG_BASENAME}${PKG_suffix}
         echo "PKG_NAME=${PKG_NAME}" >> $GITHUB_OUTPUT
