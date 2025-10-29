@@ -2,6 +2,24 @@
 
 ## Features
 
+
+## Bugfixes
+
+- `--print0` combined with `--exec` will now print a `\0` between the output of each entry. Note that if there are multiple instances
+  of `--exec`, the `\0` will be between each _set_ of commands, _not_ between each individual command run. Fixes #1797.
+
+
+## Changes
+
+- Minimum required rust version has been increased to 1.90.0. Notably, this means dropping fully support for intel Mac and Windows 7.
+
+
+## Other
+
+# 10.3.0
+
+## Features
+
 - Add a hidden `--mindepth` alias for `--min-depth`. (#1617)
 
 
@@ -15,8 +33,17 @@
   - 'M' no longer means "month", as that could be confusing with minutes. Use "mo", "mos", "month" or "months" instead.
   - month and year now account for variability in the calander rather than being a hard-coded number of seconds. That is probably
     what you would expect, but it is a slight change in behavior.
+- aarch64 Windows was added to CI and release artifacts
+- Many dependencies were updated
+- Better support building on Illumos (there is no automated testing, but some known issues were fixed)
 
 ## Other
+
+This will be the last release that has been tested on x86_64 Mac OS, since GitHub is
+dropping support for runners with that hardware.
+
+It may also be the last release to use a version of Rust with tier-1 support for
+x86_64/intel Macs and Windows 7.
 
 
 # 10.2.0
