@@ -189,6 +189,12 @@ fd -e h -e cpp -x clang-format -i
 Note how the `-i` option to `clang-format` can be passed as a separate argument. This is why
 we put the `-x` option last.
 
+Any positional arguments after `-x` belong to the command template, not to `fd` itself. If you
+also want to pass a pattern or search path, put `-x` last:
+``` bash
+fd pattern path -x echo
+```
+
 Find all `test_*.py` files and open them in your favorite editor:
 ``` bash
 fd -g 'test_*.py' -X vim
@@ -227,6 +233,9 @@ fd -tf -x md5sum > file_checksums.txt
 
 The `-x` and `-X` options take a *command template* as a series of arguments (instead of a single string).
 If you want to add additional options to `fd` after the command template, you can terminate it with a `\;`.
+
+For example, `fd -x echo \; pattern path` treats `pattern path` as `fd` arguments instead of
+passing them to `echo`. In practice, it is often clearer to write `fd pattern path -x echo`.
 
 The syntax for generating commands is similar to that of [GNU Parallel](https://www.gnu.org/software/parallel/):
 
@@ -328,7 +337,7 @@ Options:
   -L, --follow                     Follow symbolic links
   -p, --full-path                  Search full abs. path (default: filename only)
   -d, --max-depth <depth>          Set maximum search depth (default: none)
-  -E, --exclude <pattern>          Exclude entries that match the given glob pattern
+  -E, --exclude <glob>             Exclude entries that match the given glob pattern
   -t, --type <filetype>            Filter by type: file (f), directory (d/dir), symlink (l),
                                    executable (x), empty (e), socket (s), pipe (p), char-device
                                    (c), block-device (b)
